@@ -176,8 +176,8 @@ def render(game, board, buffer, x_offset=0, opponent_game = None):
 
     if game.mode == 'Versus':
         text(buffer, 23, 10+x_offset, f'{game.mode} | Player {game.player_num}', (255,255,255))        
-        text(buffer, 25, 10+x_offset, f'Total Attack: {game.total_attacks}', (255,255,255))
-        text(buffer, 26, 10+x_offset, f'Attacks Per Minute: {round(game.total_attacks/(game.elapsed_time/60), 2)}', (255,255,255))
+        text(buffer, 24, 10+x_offset, f'Total Attack: {game.total_attacks}', (255,255,255))
+        text(buffer, 25, 10+x_offset, f'Attacks Per Minute: {round(game.total_attacks/(game.elapsed_time/60), 2)}', (255,255,255))
         y = 1
     else:
         text(buffer, 24, 10+x_offset, f'Score: {int(game.score)}', (255,255,255))

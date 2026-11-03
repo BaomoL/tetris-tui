@@ -46,7 +46,7 @@ class Game:
     rotations = {Action.ROTATE_CW: 'c', Action.ROTATE_CCW: 'cc', Action.ROTATE_180: '180'}
 
 
-    def __init__(self, canvas, game_mode, player_num, seed = None):
+    def __init__(self, canvas, game_mode, player_num = 0, seed = None):
 
         # game states involve tracking the multipliers, ongoing combos, whether or not the game is running, whether or not a piece is held, and more
 
@@ -223,6 +223,10 @@ class Game:
 
     t_spin_attack_table = {0: 0, 1: 2, 2: 4, 3: 6}
 
+    # index = combo count
+
+    combo_table = [0, 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5]
+
     def calculate_attack(self, lines_clear, t_spin, pc):
 
         if lines_clear == 0:
@@ -238,6 +242,10 @@ class Game:
         # back to back adds 1 to the same chunk
         if self.b2b and (lines_clear == 4 or t_spin):
             attack += 1
+
+        # calculate with combo
+
+        attack += Game.combo_table[min(self.combo, len(Game.combo_table) - 1)]
 
         # singles send nothing, so don't add an empty attack
         if attack > 0:
