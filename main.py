@@ -13,6 +13,7 @@ try:
         # both menus don't return until a value has been selected
         while True:
             # game doesn't start until a mode has been selected
+            
             if menu:
                 game_mode = selection_menu(game_canvas)
                 if game_mode is None:
