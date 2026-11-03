@@ -100,8 +100,12 @@ class Board:
     def add_garbage(self, amount, hole):
         garbage_line = list('.gggggggggg.')
         garbage_line[hole] = None
+        topped_out = False
         for i in range(amount):
-            self.grid.pop(0)
+            remove = self.grid.pop(0)
             self.grid.insert(((len(self.grid)-1)-i), list(garbage_line))
+            if any(remove[1:11]):
+                topped_out = True
+        return topped_out
 
 

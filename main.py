@@ -27,11 +27,11 @@ try:
             # check if multiplayer
         
             if multiplayer:
-                game1, game2 = run_match(game_canvas, game_mode)
+                game1, game2 = run_match(game_canvas, ("Versus", None, None, None))
                 games = [game1, game2]
             else:
                 game = Game(game_canvas, game_mode)
-                game.start()
+                game.start() 
                 games = [game]
 
             # display results until an option has been selected

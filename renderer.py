@@ -60,30 +60,43 @@ def display_menu(canvas, lines, title, selected):
     canvas.load(new_buffer)
 
 def display_results(game, buffer, x_offset):
+    if game.mode in ("Marathon", "Hardcore", "Sprint", "Ultra", "Cheese Race"):
+        if game.mode == 'Sprint':
+            text(buffer, 3, 3+x_offset, f'{game.mode} | {game.total_lines}/{game.sprint}', (255,255,255))
 
-    if game.mode == 'Sprint':
-        text(buffer, 3, 3+x_offset, f'{game.mode} | {game.total_lines}/{game.sprint}', (255,255,255))
+        if game.mode == 'Cheese Race':
+            text(buffer, 3, 3+x_offset, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))
 
-    if game.mode == 'Cheese Race':
-        text(buffer, 3, 3+x_offset, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))
+        if game.mode in ('Hardcore', 'Marathon'):
+            text(buffer, 3, 3+x_offset, f'{game.mode} | Level: {game.level}', (255,255,255))
 
-    if game.mode in ('Hardcore', 'Marathon'):
-        text(buffer, 3, 3+x_offset, f'{game.mode} | Level: {game.level}', (255,255,255))
+        if game.mode == 'Ultra':
+            text(buffer, 3, 3+x_offset, f'{game.mode} | {format_time(game.elapsed_time)}/{format_time(game.ultra)}', (255,255,255))
 
-    if game.mode == 'Ultra':
-        text(buffer, 3, 3+x_offset, f'{game.mode} | {format_time(game.elapsed_time)}/{format_time(game.ultra)}', (255,255,255))
+        text(buffer, 4, 3+x_offset, f'Score: {int(game.score)}', (255,255,255))
+        text(buffer, 5, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
+        text(buffer, 6, 3+x_offset, f'Pieces Placed: {game.board.placed_pieces}', (255,255,255))
+        text(buffer, 7, 3+x_offset, f'Lines Cleared: {game.total_lines}', (255,255,255))
+        text(buffer, 8, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
 
-    text(buffer, 4, 3+x_offset, f'Score: {int(game.score)}', (255,255,255))
-    text(buffer, 5, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
-    text(buffer, 6, 3+x_offset, f'Pieces Placed: {game.board.placed_pieces}', (255,255,255))
-    text(buffer, 7, 3+x_offset, f'Lines Cleared: {game.total_lines}', (255,255,255))
-    text(buffer, 8, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
-
-    text(buffer, 10, 3+x_offset, 'Press Enter to play again', (255,255,255))
-    text(buffer, 11, 3+x_offset, 'Press Esc to return to menu', (255,255,255))
+        text(buffer, 10, 3+x_offset, 'Press Enter to play again', (255,255,255))
+        text(buffer, 11, 3+x_offset, 'Press Esc to return to menu', (255,255,255))
+    else:
+        text(buffer, 5, 3+x_offset, f'Total Attack: {game.total_attacks}', (255,255,255))
+        if game.elapsed_time > 0:
+            text(buffer, 6, 3+x_offset, f'Attacks Per Minute: {round(game.total_attacks/(game.elapsed_time/60), 2)}', (255,255,255))
+        text(buffer, 7, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
+        text(buffer, 8, 3+x_offset, f'Pieces Placed: {game.board.placed_pieces}', (255,255,255))
+        text(buffer, 9, 3+x_offset, f'Lines Cleared: {game.total_lines}', (255,255,255))
+        text(buffer, 10, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
     
-
-def render(game, board, buffer, x_offset=0):
+def display_multiplayer_results(games, buffer):
+    winner = 1 if games[0].lost == False else 2
+    text(buffer, 3, 3, f'Winner: Player {winner}', (255,255,255))
+    text(buffer, 12, 3, 'Press Enter to play again', (255,255,255))
+    text(buffer, 13, 3, 'Press Esc to return to menu', (255,255,255))
+    
+def render(game, board, buffer, x_offset=0, opponent_game = None):
 
     # only puts a color when truth value
 
@@ -139,6 +152,13 @@ def render(game, board, buffer, x_offset=0):
                     draw_block(buffer, offset+row, col+18, (' ', None, Piece.piece_colors[piece]), x_offset)
         offset += (len(piece_shape) +1)
 
+    # draw incoming attacks bar
+
+    total_incoming_attacks = sum(game.incoming)
+    for i in range(total_incoming_attacks):
+        if i < 20:
+            text(buffer, 20-i, 9+x_offset, ' ', None, (255, 90, 40))
+
     text(buffer, 1, 2+x_offset, 'HOLD', (255,255,255))
     text(buffer, 1, 36+x_offset, 'NEXT', (255,255,255))
 
@@ -152,14 +172,24 @@ def render(game, board, buffer, x_offset=0):
         text(buffer, 23, 10+x_offset, f'{game.mode} | {format_time(game.elapsed_time)}/{format_time(game.ultra)}', (255,255,255))
 
     if game.mode == 'Cheese Race':
-        text(buffer, 23, 10+x_offset, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))        
+        text(buffer, 23, 10+x_offset, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))
 
-    text(buffer, 24, 10+x_offset, f'Score: {int(game.score)}', (255,255,255))
-    text(buffer, 25, 10+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
-    text(buffer, 26, 10+x_offset, f'Combo: {game.combo}', (255,255,255))
-    text(buffer, 27, 10+x_offset, f'Placed: {board.placed_pieces}', (255,255,255))
+    if game.mode == 'Versus':
+        text(buffer, 23, 10+x_offset, f'{game.mode} | Player {game.player_num}', (255,255,255))        
+        text(buffer, 25, 10+x_offset, f'Total Attack: {game.total_attacks}', (255,255,255))
+        text(buffer, 26, 10+x_offset, f'Attacks Per Minute: {round(game.total_attacks/(game.elapsed_time/60), 2)}', (255,255,255))
+        y = 1
+    else:
+        text(buffer, 24, 10+x_offset, f'Score: {int(game.score)}', (255,255,255))
+        y = 0
+
+    text(buffer, 25+y, 10+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
+    text(buffer, 26+y, 10+x_offset, f'Combo: {game.combo}', (255,255,255))
+    text(buffer, 27+y, 10+x_offset, f'Placed: {board.placed_pieces}', (255,255,255))
+
     if game.elapsed_time > 0:
-        text(buffer, 28, 10+x_offset, f'PPS: {round(board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
+        text(buffer, 28+y, 10+x_offset, f'PPS: {round(board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
+
     if game.last_clear_type:
-        text(buffer, 29, 10+x_offset, game.last_clear_type, (255,255,255))
+        text(buffer, 29+y, 10+x_offset, game.last_clear_type, (255,255,255))
     

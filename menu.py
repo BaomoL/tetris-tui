@@ -1,7 +1,7 @@
 import time
 from pynput.keyboard import Key
 from keys import pressed
-from renderer import display_menu, display_results
+from renderer import display_menu, display_results, display_multiplayer_results
 from controls import Controls, Action, bindings, key_names, default_bindings
 from renderer import format_time
 
@@ -62,6 +62,9 @@ def results_menu(canvas, games):
     for i, game in enumerate(games):
 
         display_results(game, buffer, 50 * i)
+
+    if games[0].mode == "Versus":
+        display_multiplayer_results(games, buffer)
 
     canvas.load(buffer)
 

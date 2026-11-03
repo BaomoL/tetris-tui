@@ -46,7 +46,7 @@ class Game:
     rotations = {Action.ROTATE_CW: 'c', Action.ROTATE_CCW: 'cc', Action.ROTATE_180: '180'}
 
 
-    def __init__(self, canvas, game_mode, seed = None):
+    def __init__(self, canvas, game_mode, player_num, seed = None):
 
         # game states involve tracking the multipliers, ongoing combos, whether or not the game is running, whether or not a piece is held, and more
 
@@ -57,6 +57,8 @@ class Game:
         # game rng is determined by seed (if seed is given)
 
         self.rng = random.Random(seed)
+        self.garbage_rng = random.Random(seed)
+
 
         self.pieces = self.rng.sample(Game.bag, len(Game.bag))
         self.active_piece = self.new_piece()
@@ -108,6 +110,16 @@ class Game:
 
         self.fall_speed = self.gravity_speed
 
+        # for multiplayer
+
+        self.outgoing = []
+        self.incoming = []
+
+        self.total_attacks = 0
+
+        self.lost = False
+
+        self.player_num = player_num
 
     def update_mode(self):
 
@@ -207,6 +219,50 @@ class Game:
 
         return (base_score * self.b2b_mul + 50 * max(self.combo - 1, 0)) * self.level
 
+    attack_table = {0: 0, 1: 0, 2: 1, 3: 2, 4: 4}
+
+    t_spin_attack_table = {0: 0, 1: 2, 2: 4, 3: 6}
+
+    def calculate_attack(self, lines_clear, t_spin, pc):
+
+        if lines_clear == 0:
+            return
+
+        attacks = []
+
+        if t_spin:
+            attack = Game.t_spin_attack_table[lines_clear]
+        else:
+            attack = Game.attack_table[lines_clear]
+
+        # back to back adds 1 to the same chunk
+        if self.b2b and (lines_clear == 4 or t_spin):
+            attack += 1
+
+        # singles send nothing, so don't add an empty attack
+        if attack > 0:
+            attacks.append(attack)
+
+        # perfect clear sends its own separate chunks
+        if pc:
+            attacks.extend([9, 1])
+
+        self.total_attacks += sum(attacks)
+
+        self.outgoing.extend(attacks)
+
+        while self.outgoing and self.incoming:
+            if self.outgoing[0] > self.incoming[0]:
+                self.outgoing[0] -= self.incoming[0]
+                self.incoming.pop(0)
+            elif self.outgoing[0] == self.incoming[0]:
+                self.outgoing.pop(0)
+                self.incoming.pop(0)
+            elif self.incoming[0] > self.outgoing[0]:
+                self.incoming[0] -= self.outgoing[0]
+                self.outgoing.pop(0)
+
+
     # returns a string to be printed by render()
 
     def clear_type(self, lines, t_spin, pc):
@@ -253,7 +309,6 @@ class Game:
         t_spin = self.board.detect_t_spin(self.active_piece)
         self.board.lock_piece(self.active_piece)
 
-
         # check amount of lines were cleared
 
         lines, new_cheese_cleared= self.board.clear_rows()
@@ -274,7 +329,9 @@ class Game:
 
         else:
             self.combo = 0
+            self.process_attacks()
 
+        self.calculate_attack(lines, t_spin, perfect)
         self.score += self.calculate_score(lines, t_spin, perfect)
         self.active_piece = self.new_piece()
         self.can_hold = True
@@ -295,7 +352,14 @@ class Game:
         render(self, self.board, buffer)
         self.canvas.load(buffer)
 
+    def process_attacks(self):
+        while self.incoming:
+            if self.board.add_garbage(self.incoming.pop(0), self.garbage_rng.randint(1, 10)):
+                self.endgame()
+
     def endgame(self):
+        if self.mode == "Versus":
+            self.lost = True
         self.running = False
         self.game_over = True
 
@@ -334,7 +398,7 @@ class Game:
 
         if self.mode == "Cheese Race":
             while self.garbage < 8:
-                self.board.add_garbage(1, self.rng.randint(1, 10))
+                self.board.add_garbage(1, self.garbage_rng.randint(1, 10))
                 self.garbage += 1
 
         # soft drop options (instant or multiplied)
@@ -461,7 +525,7 @@ class Game:
 
         # update scores 
                                 
-        self.update_mode()            
+        self.update_mode()             
 
 
     def begin(self):
