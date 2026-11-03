@@ -85,11 +85,23 @@ class Board:
     def clear_rows(self):
 
         cleared = 0
+        cheese_cleared = 0
 
         for y in range(0, len(self.grid) - 1):
             if all(x for x in self.grid[y][1:-1]):
+                if any(x == 'g' for x in self.grid[y][1:-1]):
+                    cheese_cleared += 1
                 self.grid.pop(y)
                 self.grid.insert(0, list(Board.empty_row))
                 cleared += 1
 
-        return cleared
+        return cleared, cheese_cleared
+
+    def add_garbage(self, amount, hole):
+        garbage_line = list('.gggggggggg.')
+        garbage_line[hole] = None
+        for i in range(amount):
+            self.grid.pop(0)
+            self.grid.insert(((len(self.grid)-1)-i), list(garbage_line))
+
+

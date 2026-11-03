@@ -3,6 +3,7 @@ from pynput.keyboard import Key
 from keys import pressed
 from renderer import display_menu, display_results
 from controls import Controls, Action, bindings, key_names, default_bindings
+from renderer import format_time
 
 class Setting:
 
@@ -11,21 +12,29 @@ class Setting:
 
 page = {
     'TUI Tetris': 
-        {"Marathon": ("Marathon",),
+        {"Marathon": ("Marathon", None, None, None),
+
+        "Hardcore": ("Hardcore", None, None, None),
 
         "Sprint": {
-            "20 Lines": ("Sprint", 20),
-            "40 Lines": ("Sprint", 40),
-            "100 Lines": ("Sprint", 100),
+            "20 Lines": ("Sprint", 20, None, None),
+            "40 Lines": ("Sprint", 40, None, None),
+            "100 Lines": ("Sprint", 100, None, None),
         },
 
         "Ultra": {
-            "1 Minute": ("Ultra", None, 60),
-            "2 Minutes": ("Ultra", None, 120),
-            "5 Minutes": ("Ultra", None, 300),
+            "1 Minute": ("Ultra", None, 60, None),
+            "2 Minutes": ("Ultra", None, 120, None),
+            "5 Minutes": ("Ultra", None, 300, None),
         },
 
-        "Hardcore": ("Hardcore",),
+        "Cheese Race": {
+            "10 Lines": ("Cheese Race", None, None, 10),
+            "20 Lines": ("Cheese Race", None, None, 20),
+            "100 Lines": ("Cheese Race", None, None, 100)
+            },
+
+        "Start": True,
 
         "Settings": {
             "Rotate C": Setting("rotate_clockwise"),
@@ -39,8 +48,6 @@ page = {
             "Rotate C (Backup)": Setting("rotate_clockwise_backup"),
             "Reset": "reset"
         },
-
-        "Start": True,
         
         "Quit": None}
 }
@@ -77,7 +84,7 @@ def selection_menu(canvas):
 
     chosen = {'TUI Tetris': "Marathon"}
 
-    game_mode = ("Marathon",)
+    game_mode = ("Marathon", None, None, None)
 
     waiting_for = None  
     
@@ -154,6 +161,7 @@ def selection_menu(canvas):
         for line in current_options:
 
             line_pointer = current_page_pointer[line]
+
             if isinstance(line_pointer, Setting):
                 if line_pointer.name == waiting_for:
                     lines.append((f'{line:<20} Press a key', True))
@@ -161,6 +169,17 @@ def selection_menu(canvas):
                     # either show keybind name or show keybind
                     key = bindings[line_pointer.name]
                     lines.append((f'{line:<20} {key_names[key] if key in key_names else key}', False))
+            elif page_labels[-1] == "TUI Tetris":
+                if game_mode[0] == "Sprint" and line == "Sprint":
+                    lines.append((f'{line}: {game_mode[1]}', line in chosen.values()))
+
+                elif game_mode[0] == "Ultra" and line == "Ultra":
+                    lines.append((f'{line}: {format_time(game_mode[2])}', line in chosen.values()))
+
+                elif game_mode[0] == "Cheese Race" and line == "Cheese Race":
+                    lines.append((f'{line}: {game_mode[3]}', line in chosen.values()))
+                else:
+                    lines.append((line, line in chosen.values()))
             else:
                 lines.append((line, line in chosen.values()))
             

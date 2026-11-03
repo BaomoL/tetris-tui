@@ -40,12 +40,20 @@ def display_menu(canvas, lines, title, selected):
 
     for item_position, (item, highlight) in enumerate(lines):
 
-        if item_position == selected:
-            text(new_buffer, row, 2, '>', (255,255,255))
+        # space out settings one extra
+        if item == "Start":
+            text(new_buffer, row, 4, '---------', (255,255,255))
+            row += 1
+
+        if item in ("Sprint", "Ultra", "Cheese Race", "Settings"):
+            text(new_buffer, row, 16, '›', (255,255,255))
+        
         if highlight:
             text(new_buffer, row, 4, item, (0,0,0), (255,255,255))
         else:
             text(new_buffer, row, 4, item, (255,255,255))
+        if item_position == selected:
+            text(new_buffer, row, 2, '>', (255,255,255))
 
         row += 1
 
@@ -56,6 +64,9 @@ def display_results(canvas, game):
     new_buffer = canvas.blank_canvas()
     if game.mode == 'Sprint':
         text(new_buffer, 3, 3, f'{game.mode} | {game.total_lines}/{game.sprint}', (255,255,255))
+
+    if game.mode == 'Cheese Race':
+        text(new_buffer, 3, 3, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))
 
     if game.mode in ('Hardcore', 'Marathon'):
         text(new_buffer, 3, 3, f'{game.mode} | Level: {game.level}', (255,255,255))
@@ -144,6 +155,9 @@ def render(canvas, game, board):
 
     if game.mode == 'Ultra':
         text(new_buffer, 23, 10, f'{game.mode} | {format_time(game.elapsed_time)}/{format_time(game.ultra)}', (255,255,255))
+
+    if game.mode == 'Cheese Race':
+        text(new_buffer, 23, 10, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))        
 
     text(new_buffer, 24, 10, f'Score: {int(game.score)}', (255,255,255))
     text(new_buffer, 25, 10, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))

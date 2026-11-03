@@ -46,14 +46,19 @@ class Game:
     rotations = {Action.ROTATE_CW: 'c', Action.ROTATE_CCW: 'cc', Action.ROTATE_180: '180'}
 
 
-    def __init__(self, canvas, game_mode, line_limit=None, time_limit=None):
+    def __init__(self, canvas, game_mode, seed = None):
 
         # game states involve tracking the multipliers, ongoing combos, whether or not the game is running, whether or not a piece is held, and more
 
         self.board = Board()
         self.running = False
         self.game_over = False
-        self.pieces = random.sample(Game.bag, len(Game.bag))
+
+        # game rng is determined by seed (if seed is given)
+
+        self.rng = random.Random(seed)
+
+        self.pieces = self.rng.sample(Game.bag, len(Game.bag))
         self.active_piece = self.new_piece()
         self.held_piece = None
         self.can_hold = True
@@ -66,6 +71,7 @@ class Game:
         self.b2b_counter = 0
         self.touching = False
         self.canvas = canvas
+        self.garbage = 0
 
         # menu decides whether or not the menu should be showing
 
@@ -73,9 +79,11 @@ class Game:
 
         # game mode tracks the type of game created:
 
-        self.mode = game_mode
-        self.line_limit = line_limit
-        self.time_limit = time_limit
+        self.mode = game_mode[0]
+        self.line_limit = game_mode[1]
+        self.time_limit = game_mode[2]
+        self.cheese = game_mode[3]
+        self.cheese_cleared = 0
         self.gravity_speed = 1
 
         self.final_results = ''
@@ -100,20 +108,17 @@ class Game:
 
             self.gravity_speed = (0.8 - (self.level - 1) * 0.007) ** (self.level - 1)
 
-
-            self.final_results = f'{self.mode} \n\nFinal Level: {self.level} \nScore: {int(self.score)}\nTotal Lines Cleared: {self.total_lines} \nTotal Elapsed Time: {format_time(self.elapsed_time)}'
-
         elif self.mode == 'Sprint':
             if self.total_lines >= self.sprint:
                 self.endgame()
-
-            self.final_results = f'{self.mode} \n\nTotal Lines Cleared: {self.total_lines}/{self.sprint}\nScore: {int(self.score)} \nTotal Elapsed Time: {format_time(self.elapsed_time)}'
 
         elif self.mode == 'Ultra':
             if self.elapsed_time >= self.ultra:
                 self.endgame()
 
-            self.final_results = f'{self.mode} \n\nScore: {int(self.score)}\nTotal Lines Cleared: {self.total_lines} \nTotal Elapsed Time: {format_time(self.elapsed_time)}/{format_time(self.ultra)}'
+        elif self.mode == 'Cheese Race':
+            if self.cheese_cleared >= self.cheese:
+                self.endgame()
 
     def new_piece(self):
 
@@ -121,7 +126,7 @@ class Game:
 
         if len(self.pieces) < 7:
 
-            self.pieces = random.sample(Game.bag, len(Game.bag)) + self.pieces
+            self.pieces = self.rng.sample(Game.bag, len(Game.bag)) + self.pieces
 
         # specifically the o piece spawns in the middle by default
 
@@ -235,9 +240,14 @@ class Game:
         t_spin = self.board.detect_t_spin(self.active_piece)
         self.board.lock_piece(self.active_piece)
 
+
         # check amount of lines were cleared
 
-        lines = self.board.clear_rows()
+        lines, new_cheese_cleared= self.board.clear_rows()
+
+        self.cheese_cleared += new_cheese_cleared
+
+        self.garbage -= new_cheese_cleared
 
         self.total_lines += lines
 
@@ -315,6 +325,7 @@ class Game:
 
         inputs = Controls('game')
 
+
         while self.running:
 
             #track keys pressed
@@ -346,6 +357,13 @@ class Game:
 
             elif not self.board.is_valid(self.active_piece, dy=1):
                 self.clear()
+
+            # add cheese if it's cheese race
+
+            if self.mode == "Cheese Race":
+                while self.garbage < 8:
+                    self.board.add_garbage(1, self.rng.randint(1, 10))
+                    self.garbage += 1
 
             # soft drop options (instant or multiplied)
 
