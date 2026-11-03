@@ -3,8 +3,9 @@ from canvas import Canvas
 from game import Game
 from terminal import raw_mode
 from keys import listener
+from match import run_match
 
-game_canvas = Canvas(50, 35)
+game_canvas = Canvas(100, 35)
 try:
     listener.start()
     menu = True
@@ -12,21 +13,31 @@ try:
 
         # both menus don't return until a value has been selected
         while True:
+
             # game doesn't start until a mode has been selected
+            games = []
             
             if menu:
-                game_mode = selection_menu(game_canvas)
+                game_mode, multiplayer = selection_menu(game_canvas)
                 if game_mode is None:
                     break
             
                 menu = False
 
-            game = Game(game_canvas, game_mode)
-            game.start()
+            # check if multiplayer
+        
+            if multiplayer:
+                game1, game2 = run_match(game_canvas, game_mode)
+                games = [game1, game2]
+            else:
+                game = Game(game_canvas, game_mode)
+                game.start()
+                games = [game]
 
             # display results until an option has been selected
 
-            menu = results_menu(game_canvas, game)
+            menu = results_menu(game_canvas, games)
+
 finally:
     game_canvas.close()
     listener.stop()

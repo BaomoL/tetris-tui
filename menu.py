@@ -48,11 +48,22 @@ page = {
             "Rotate C (Backup)": Setting("rotate_clockwise_backup"),
             "Reset": "reset"
         },
+        "Multiplayer": {
+
+            "Local": (True),
+
+        },
         
         "Quit": None}
 }
-def results_menu(canvas, game):
-    display_results(canvas, game)
+def results_menu(canvas, games):
+
+    buffer = canvas.blank_canvas()
+    for i, game in enumerate(games):
+
+        display_results(game, buffer, 50 * i)
+
+    canvas.load(buffer)
 
     inputs = Controls('menu')
 
@@ -85,6 +96,9 @@ def selection_menu(canvas):
     chosen = {'TUI Tetris': "Marathon"}
 
     game_mode = ("Marathon", None, None, None)
+
+    multiplayer = False
+    local = False
 
     waiting_for = None  
     
@@ -150,11 +164,22 @@ def selection_menu(canvas):
     
             # start game
             if selected_option_label == "Start":
-                return game_mode
+                return game_mode, multiplayer
+
+            # toggle multiplayer
+            if selected_option_label == "Local":
+                if local:
+                    local = False
+                else:
+                    local = True
+            if local:
+                multiplayer = True
+            else:
+                multiplayer = False
 
             # quit game
             if selected_option_label == "Quit":
-                return None
+                return None, None
 
         lines = []
 
@@ -178,10 +203,17 @@ def selection_menu(canvas):
 
                 elif game_mode[0] == "Cheese Race" and line == "Cheese Race":
                     lines.append((f'{line}: {game_mode[3]}', line in chosen.values()))
+
+                elif line == "Multiplayer":
+                    lines.append((line, multiplayer))
+        
                 else:
                     lines.append((line, line in chosen.values()))
             else:
-                lines.append((line, line in chosen.values()))
+                if line in ("Local",):
+                    lines.append((line, local))
+                else:
+                    lines.append((line, line in chosen.values()))
             
         display_menu(canvas, lines, current_page_label, selected)
 

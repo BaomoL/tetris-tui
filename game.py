@@ -291,7 +291,9 @@ class Game:
     # starts and tracks the current game
 
     def render_board(self):
-        render(self.canvas, self, self.board)
+        buffer = self.canvas.blank_canvas()
+        render(self, self.board, buffer)
+        self.canvas.load(buffer)
 
     def endgame(self):
         self.running = False
@@ -462,24 +464,28 @@ class Game:
         self.update_mode()            
 
 
-    def start(self):
+    def begin(self):
 
         self.update_mode()
 
         self.running = True
 
-        self.render_board()
-
         # touch timers
         self.reset_piece_state()
 
-        last_render = time.perf_counter()
-
         self.start_time = time.perf_counter()
+
+    def start(self):
+
+        self.begin()
+
+        last_render = time.perf_counter()
+        
+        self.render_board()
 
         # import controls
 
-        inputs = Controls('game')
+        inputs = Controls("game")
 
         while self.running:
             

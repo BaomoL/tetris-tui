@@ -89,9 +89,34 @@ actions = {
         "hold": Action.HOLD,
         }
 
+
+p1_bindings = {
+    "move_left": 'a',
+    "move_right": 'd',
+    "soft_drop": 's',
+    "hard_drop": 'w',
+    "hold": Key.shift,
+    "rotate_clockwise": 'e',
+    "rotate_counter_clockwise": 'q',
+    "rotate_one_eighty": 'r',
+    "rotate_clockwise_backup": 'f',
+}
+
+p2_bindings = {
+    "move_left": Key.left,
+    "move_right": Key.right,
+    "soft_drop": Key.down,
+    "hard_drop": Key.up,
+    "hold": Key.shift_r,
+    "rotate_clockwise": '.',
+    "rotate_counter_clockwise": ',',
+    "rotate_one_eighty": '/',
+    "rotate_clockwise_backup": ';',
+}
+
 class Controls:
 
-    def __init__(self, game_state):
+    def __init__(self, game_state, binds=bindings):
         self.last_held = set()
         self.game_state = game_state
 
@@ -99,7 +124,7 @@ class Controls:
         self.keybinds = {}
         if self.game_state == 'game':
             for name, action in actions.items():
-                self.keybinds[bindings[name]] = action
+                self.keybinds[binds[name]] = action
         else:
             self.keybinds = menu
 

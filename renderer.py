@@ -45,7 +45,7 @@ def display_menu(canvas, lines, title, selected):
             text(new_buffer, row, 4, '---------', (255,255,255))
             row += 1
 
-        if item in ("Sprint", "Ultra", "Cheese Race", "Settings"):
+        if item in ("Sprint", "Ultra", "Cheese Race", "Settings", "Multiplayer"):
             text(new_buffer, row, 16, '›', (255,255,255))
         
         if highlight:
@@ -59,48 +59,43 @@ def display_menu(canvas, lines, title, selected):
 
     canvas.load(new_buffer)
 
-def display_results(canvas, game):
+def display_results(game, buffer, x_offset):
 
-    new_buffer = canvas.blank_canvas()
     if game.mode == 'Sprint':
-        text(new_buffer, 3, 3, f'{game.mode} | {game.total_lines}/{game.sprint}', (255,255,255))
+        text(buffer, 3, 3+x_offset, f'{game.mode} | {game.total_lines}/{game.sprint}', (255,255,255))
 
     if game.mode == 'Cheese Race':
-        text(new_buffer, 3, 3, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))
+        text(buffer, 3, 3+x_offset, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))
 
     if game.mode in ('Hardcore', 'Marathon'):
-        text(new_buffer, 3, 3, f'{game.mode} | Level: {game.level}', (255,255,255))
+        text(buffer, 3, 3+x_offset, f'{game.mode} | Level: {game.level}', (255,255,255))
 
     if game.mode == 'Ultra':
-        text(new_buffer, 3, 3, f'{game.mode} | {format_time(game.elapsed_time)}/{format_time(game.ultra)}', (255,255,255))
+        text(buffer, 3, 3+x_offset, f'{game.mode} | {format_time(game.elapsed_time)}/{format_time(game.ultra)}', (255,255,255))
 
-    text(new_buffer, 4, 3, f'Score: {int(game.score)}', (255,255,255))
-    text(new_buffer, 5, 3, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
-    text(new_buffer, 6, 3, f'Pieces Placed: {game.board.placed_pieces}', (255,255,255))
-    text(new_buffer, 7, 3, f'Lines Cleared: {game.total_lines}', (255,255,255))
-    text(new_buffer, 8, 3, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
+    text(buffer, 4, 3+x_offset, f'Score: {int(game.score)}', (255,255,255))
+    text(buffer, 5, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
+    text(buffer, 6, 3+x_offset, f'Pieces Placed: {game.board.placed_pieces}', (255,255,255))
+    text(buffer, 7, 3+x_offset, f'Lines Cleared: {game.total_lines}', (255,255,255))
+    text(buffer, 8, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
 
-    text(new_buffer, 10, 3, 'Press Enter to play again', (255,255,255))
-    text(new_buffer, 11, 3, 'Press Esc to return to menu', (255,255,255))
-    canvas.load(new_buffer)
+    text(buffer, 10, 3+x_offset, 'Press Enter to play again', (255,255,255))
+    text(buffer, 11, 3+x_offset, 'Press Esc to return to menu', (255,255,255))
+    
 
-def render(canvas, game, board):
-
-    # fresh blank grid
-
-    new_buffer = canvas.blank_canvas()
+def render(game, board, buffer, x_offset=0):
 
     # only puts a color when truth value
 
     for row in range(2):
             for column in range(1, len(board.grid[row])-1):
                 if board.grid[row][column]:
-                    draw_block(new_buffer, row, column, (' ', None, Piece.piece_colors[board.grid[row][column]]), 10)
+                    draw_block(buffer, row, column, (' ', None, Piece.piece_colors[board.grid[row][column]]), 10+x_offset)
 
     for row in range(2, len(board.grid)):
         for column in range(len(board.grid[row])):
             if board.grid[row][column]:
-                draw_block(new_buffer, row, column, (' ', None, Piece.piece_colors[board.grid[row][column]]), 10)
+                draw_block(buffer, row, column, (' ', None, Piece.piece_colors[board.grid[row][column]]), 10+x_offset)
 
     # ghost piece
     ghost_y = game.active_piece.y
@@ -110,7 +105,7 @@ def render(canvas, game, board):
     for y in range(len(game.active_piece.shape)):
         for x in range(len(game.active_piece.shape[y])):
             if game.active_piece.shape[y][x]:
-                draw_block(new_buffer, ghost_y+y, game.active_piece.x + x, ('░', game.active_piece.color, None), 10)
+                draw_block(buffer, ghost_y+y, game.active_piece.x + x, ('░', game.active_piece.color, None), 10+x_offset)
 
     # draw piece
 
@@ -121,7 +116,7 @@ def render(canvas, game, board):
             board_x = game.active_piece.x + piece_x
             board_y = game.active_piece.y + piece_y
             if game.active_piece.shape[piece_y][piece_x]:
-                draw_block(new_buffer, board_y, board_x, (' ', None, game.active_piece.color), 10)
+                draw_block(buffer, board_y, board_x, (' ', None, game.active_piece.color), 10+x_offset)
 
     # draw held piece
 
@@ -130,7 +125,7 @@ def render(canvas, game, board):
         for row in range(len(piece)):
             for col in range(len(piece[row])):
                 if piece[row][col]:
-                    draw_block(new_buffer, 3+row, col, (' ', None, Piece.piece_colors[game.held_piece]), 0)
+                    draw_block(buffer, 3+row, col, (' ', None, Piece.piece_colors[game.held_piece]), x_offset)
 
     # draw queue
 
@@ -141,31 +136,30 @@ def render(canvas, game, board):
         for row in range(len(piece_shape)):
             for col in range(len(piece_shape[row])):
                 if piece_shape[row][col]:
-                    draw_block(new_buffer, offset+row, col+18, (' ', None, Piece.piece_colors[piece]), 0)
+                    draw_block(buffer, offset+row, col+18, (' ', None, Piece.piece_colors[piece]), x_offset)
         offset += (len(piece_shape) +1)
 
-    text(new_buffer, 1, 2, 'HOLD', (255,255,255))
-    text(new_buffer, 1, 36, 'NEXT', (255,255,255))
+    text(buffer, 1, 2+x_offset, 'HOLD', (255,255,255))
+    text(buffer, 1, 36+x_offset, 'NEXT', (255,255,255))
 
     if game.mode == 'Sprint':
-        text(new_buffer, 23, 10, f'{game.mode} | {game.total_lines}/{game.sprint}', (255,255,255))
+        text(buffer, 23, 10+x_offset, f'{game.mode} | {game.total_lines}/{game.sprint}', (255,255,255))
 
     if game.mode in ('Hardcore', 'Marathon'):
-        text(new_buffer, 23, 10, f'{game.mode} | Level: {game.level}', (255,255,255))
+        text(buffer, 23, 10+x_offset, f'{game.mode} | Level: {game.level}', (255,255,255))
 
     if game.mode == 'Ultra':
-        text(new_buffer, 23, 10, f'{game.mode} | {format_time(game.elapsed_time)}/{format_time(game.ultra)}', (255,255,255))
+        text(buffer, 23, 10+x_offset, f'{game.mode} | {format_time(game.elapsed_time)}/{format_time(game.ultra)}', (255,255,255))
 
     if game.mode == 'Cheese Race':
-        text(new_buffer, 23, 10, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))        
+        text(buffer, 23, 10+x_offset, f'{game.mode} | {game.cheese_cleared}/{game.cheese}', (255,255,255))        
 
-    text(new_buffer, 24, 10, f'Score: {int(game.score)}', (255,255,255))
-    text(new_buffer, 25, 10, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
-    text(new_buffer, 26, 10, f'Combo: {game.combo}', (255,255,255))
-    text(new_buffer, 27, 10, f'Placed: {board.placed_pieces}', (255,255,255))
+    text(buffer, 24, 10+x_offset, f'Score: {int(game.score)}', (255,255,255))
+    text(buffer, 25, 10+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
+    text(buffer, 26, 10+x_offset, f'Combo: {game.combo}', (255,255,255))
+    text(buffer, 27, 10+x_offset, f'Placed: {board.placed_pieces}', (255,255,255))
     if game.elapsed_time > 0:
-        text(new_buffer, 28, 10, f'PPS: {round(board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
+        text(buffer, 28, 10+x_offset, f'PPS: {round(board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
     if game.last_clear_type:
-        text(new_buffer, 29, 10, game.last_clear_type, (255,255,255))
+        text(buffer, 29, 10+x_offset, game.last_clear_type, (255,255,255))
     
-    canvas.load(new_buffer)
