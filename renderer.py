@@ -96,7 +96,7 @@ def display_multiplayer_results(games, buffer):
     text(buffer, 12, 3, 'Press Enter to play again', (255,255,255))
     text(buffer, 13, 3, 'Press Esc to return to menu', (255,255,255))
     
-def render(game, board, buffer, x_offset=0, opponent_game = None):
+def render(game, board, buffer, x_offset=0):
 
     # only puts a color when truth value
 

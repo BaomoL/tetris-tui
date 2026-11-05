@@ -381,6 +381,31 @@ class Game:
         self.gravity_timer = now
         self.touching = False
 
+    # save current game for multiplayer, must be dictionary with simple values for json to parse
+
+    def snapshot(self):
+        return {
+            "grid": self.board.grid,
+            "piece": {
+                "type": self.active_piece.type,
+                "x": self.active_piece.x,
+                "y": self.active_piece.y,
+                "shape": self.active_piece.shape,
+            },
+            "held": self.held_piece,
+            "queue": self.pieces[-5:],
+            "incoming": self.incoming,
+            "mode": self.mode,
+            "player_num": self.player_num,
+            "total_attacks": self.total_attacks,
+            "elapsed_time": self.elapsed_time,
+            "combo": self.combo,
+            "placed_pieces": self.board.placed_pieces,
+            "last_clear_type": self.last_clear_type,
+            "lost": self.lost,
+            "attacks": self.outgoing,
+        }
+
     def tick(self, new_actions, held_actions, now):
 
         self.elapsed_time = now - self.start_time
@@ -534,7 +559,6 @@ class Game:
         # update scores 
                                 
         self.update_mode()             
-
 
     def begin(self):
 

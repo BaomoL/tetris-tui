@@ -5,6 +5,7 @@ from pynput.keyboard import Key
 from keys import pressed
 from config import tick_rate, fps
 from renderer import render
+from net import OpponentPOV
 import time
 
 def run_match(canvas, game_mode):
@@ -49,9 +50,52 @@ def run_match(canvas, game_mode):
 
         if now - last_render >= 1/fps:
             buffer = canvas.blank_canvas()
-            render(game1, game1.board, buffer, 0, game2)
-            render(game2, game2.board, buffer, 50, game1)
+            render(game1, game1.board, buffer, 0)
+            render(game2, game2.board, buffer, 50)
             canvas.load(buffer)
             last_render = now
 
     return game1, game2
+
+# run match but with someone online
+
+def run_online_match(canvas, net):
+
+    my_game = Game(canvas, ("Versus", None, None, None))
+
+    my_controls = Controls("game")
+
+    my_game.begin()
+
+    last_render = time.perf_counter()
+
+    while my_game.running and net.connected:
+
+        if Key.esc in pressed:
+            my_game.running = False
+
+        new_presses, held_presses = my_controls.read()
+
+        now = time.perf_counter()
+
+        my_game.tick(new_presses, held_presses, now)
+
+        while net.attacks:
+            my_game.incoming.append(net.attacks.pop(0))
+
+        if now - last_render >= 1/fps:
+            buffer = canvas.blank_canvas()
+            render(my_game, my_game.board, buffer, 0)
+            net.send(my_game.snapshot())
+            my_game.outgoing = []
+
+            if net.latest is not None:
+                op_pov = OpponentPOV(net.latest)
+                render(op_pov, op_pov.board, buffer, 50)
+            canvas.load(buffer)
+            last_render = now
+
+        time.sleep(1/tick_rate)
+
+    return my_game
+

@@ -94,14 +94,30 @@ actions = {
 #     "move_left": 'a',
 #     "move_right": 'd',
 #     "soft_drop": 's',
-#     "hard_drop": 'w',
+#     "hard_drop": 'c',
 #     "hold": Key.shift,
-#     "rotate_clockwise": 'e',
-#     "rotate_counter_clockwise": 'q',
-#     "rotate_one_eighty": 'r',
+#     "rotate_clockwise": 'r',
+#     "rotate_counter_clockwise": 't',
+#     "rotate_one_eighty": 'y',
 #     "rotate_clockwise_backup": 'f',
 # }
 
+
+
+# p2_bindings = {
+#     "move_left": Key.left,
+#     "move_right": Key.right,
+#     "soft_drop": Key.down,
+#     "hard_drop": Key.space,
+#     "hold": 'b',
+#     "rotate_clockwise": 'l',
+#     "rotate_counter_clockwise": 'j',
+#     "rotate_one_eighty": 'i',
+#     "rotate_clockwise_backup": ';',
+# }
+# 
+
+"""test controls"""
 p1_bindings = {
     "move_left": move_left,
     "move_right": move_right,
@@ -113,18 +129,6 @@ p1_bindings = {
     "rotate_one_eighty": rotate_one_eighty,
     "rotate_clockwise_backup": rotate_clockwise_backup,
 }
-
-# p2_bindings = {
-#     "move_left": Key.left,
-#     "move_right": Key.right,
-#     "soft_drop": Key.down,
-#     "hard_drop":'/',
-#     "hold": Key.shift_r,
-#     "rotate_clockwise": Key.up,
-#     "rotate_counter_clockwise": ',',
-#     "rotate_one_eighty": None,
-#     "rotate_clockwise_backup": ';',
-# }
 p2_bindings = {
     "move_left": None,
     "move_right": None,

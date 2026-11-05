@@ -14,6 +14,8 @@ absolute_time =             20
 tick_rate = 200
 fps = 60
 
+PORT = 5050
+
 """Rotations"""
 rotate_clockwise =          's'
 rotate_counter_clockwise =  'a'
