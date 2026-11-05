@@ -2,8 +2,9 @@ import time
 from pynput.keyboard import Key
 from keys import pressed
 from renderer import display_menu, display_results, display_multiplayer_results
-from controls import Controls, Action, bindings, key_names, default_bindings
+from controls import Controls, Action, bindings, key_names, default_bindings, KeyReader
 from renderer import format_time
+from net import get_local_ip
 
 class Setting:
 
@@ -11,7 +12,7 @@ class Setting:
         self.name = control_name
 
 page = {
-    'TUI Tetris': 
+    'TUI Tetris: Single Player': 
         {"Marathon": ("Marathon", None, None, None),
 
         "Hardcore": ("Hardcore", None, None, None),
@@ -48,14 +49,38 @@ page = {
             "Rotate C (Backup)": Setting("rotate_clockwise_backup"),
             "Reset": "reset"
         },
-        "Multiplayer": {
 
-            "Local": (True),
-
+        "Multiplayer": 'switch',
+        
+        "Quit": None
         },
+
+        "TUI Tetris: Multiplayer": {
+
+        "Local": "local",
+        "Join": "join",
+        "Host": "host",
+
+        "Start": True,
+
+        "Settings": {
+            "Rotate C": Setting("rotate_clockwise"),
+            "Rotate CC": Setting("rotate_counter_clockwise"),
+            "Rotate 180": Setting("rotate_one_eighty"),
+            "Move Left": Setting("move_left"),
+            "Move Right": Setting("move_right"),
+            "Soft Drop": Setting("soft_drop"),
+            "Hard Drop": Setting("hard_drop"),
+            "Hold": Setting("hold"),
+            "Rotate C (Backup)": Setting("rotate_clockwise_backup"),
+            "Reset": "reset"
+        },
+
+        "Single Player": 'switch',
         
         "Quit": None}
 }
+
 def results_menu(canvas, games):
 
     buffer = canvas.blank_canvas()
@@ -88,22 +113,28 @@ def selection_menu(canvas):
     selected = 0
 
     # track current page using stack
-    pages = [page["TUI Tetris"]]
+    pages = [page["TUI Tetris: Single Player"]]
 
     # track current page label using stack
-    page_labels =["TUI Tetris"]
+    page_labels =["TUI Tetris: Single Player"]
 
     # chosen includes all selected choices
     # default game_mode to avoid crashing
 
-    chosen = {'TUI Tetris': "Marathon"}
+    chosen = {"TUI Tetris: Single Player": "Marathon"}
 
     game_mode = ("Marathon", None, None, None)
 
-    multiplayer = False
-    local = False
-
     waiting_for = None  
+
+    selected_multiplayer_option = 0
+    network_row = ("Local", "Join", "Host")
+
+    player_ip = "No Network Connection"
+
+    entered_ip = ''
+
+    keyboard_input = KeyReader()
     
     while True:
 
@@ -111,29 +142,61 @@ def selection_menu(canvas):
 
         current_options = list(pages[-1])
 
-        options_num = len(current_options)
-
         current_page_pointer = pages[-1]
 
         current_page_label = page_labels[-1]
+
+        options_num = len(current_options)
 
         selected_option_pointer = current_page_pointer[current_options[selected]]
 
         selected_option_label = current_options[selected]
 
+        # only get ip once
+
+        if selected_multiplayer_option == 2 and player_ip == "No Network Connection":
+            player_ip = get_local_ip()
+
+        # for typing in ip
+
+        if selected_multiplayer_option == 1:
+
+            for key in keyboard_input.read():
+                if key in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.') and len(entered_ip) <15:
+                    entered_ip += key
+
+                elif key == Key.backspace and len(entered_ip) > 0:
+                    entered_ip= entered_ip[:-1]
+
         if Action.MENU_DOWN in new_actions:
-            selected = (selected +1) % options_num
+            if selected_option_label in network_row:
+                selected = 3
+            else:
+                selected = (selected +1) % options_num
 
         if Action.MENU_UP in new_actions:
-            selected = (selected - 1) % options_num
+            if selected_option_label in network_row:
+                selected = len(current_options) - 1
+            else:
+                selected = (selected - 1) % options_num
+
+            if current_options[selected] in network_row:
+                selected = 0
 
         if Action.MENU_RIGHT in new_actions:
+            if selected_option_label in network_row:
+                selected_multiplayer_option = (selected_multiplayer_option + 1) % 3
+
             if isinstance(selected_option_pointer, dict):
                 pages.append(selected_option_pointer)
                 selected = 0
                 page_labels.append(selected_option_label)
 
         if Action.MENU_LEFT in new_actions or Action.MENU_ESC in new_actions:
+
+            if Action.MENU_LEFT in new_actions and selected_option_label in network_row:
+                selected_multiplayer_option = (selected_multiplayer_option - 1) % 3
+
             if len(pages) > 1:
                 pages.pop()
                 page_labels.pop()
@@ -154,8 +217,8 @@ def selection_menu(canvas):
 
                 # tuple = game_mode
                 game_mode = selected_option_pointer
-                if current_page_label != "TUI Tetris":
-                    chosen["TUI Tetris"] = current_page_label
+                if current_page_label != "TUI Tetris: Single Player":
+                    chosen["TUI Tetris: Single Player"] = current_page_label
 
             # reset controls
             if selected_option_label == "Reset":
@@ -167,22 +230,25 @@ def selection_menu(canvas):
     
             # start game
             if selected_option_label == "Start":
-                return game_mode, multiplayer
+                return game_mode, ()
 
             # toggle multiplayer
-            if selected_option_label == "Local":
-                if local:
-                    local = False
-                else:
-                    local = True
-            if local:
-                multiplayer = True
-            else:
-                multiplayer = False
+            if selected_option_label == "Multiplayer":
+                page_labels =["TUI Tetris: Multiplayer"]
+                pages = [page["TUI Tetris: Multiplayer"]]
+                selected_multiplayer_option = 0
+                chosen = {}
+                selected = 0
+
+            elif selected_option_label == "Single Player":
+                page_labels =["TUI Tetris: Single Player"]
+                pages = [page["TUI Tetris: Single Player"]]
+                chosen = {"TUI Tetris: Single Player": "Marathon"}
+                selected = 0
 
             # quit game
             if selected_option_label == "Quit":
-                return None, None
+                return None
 
         lines = []
 
@@ -197,7 +263,7 @@ def selection_menu(canvas):
                     # either show keybind name or show keybind
                     key = bindings[line_pointer.name]
                     lines.append((f'{line:<20} {key_names[key] if key in key_names else key}', False))
-            elif page_labels[-1] == "TUI Tetris":
+            elif page_labels[-1] == "TUI Tetris: Single Player":
                 if game_mode[0] == "Sprint" and line == "Sprint":
                     lines.append((f'{line}: {game_mode[1]}', line in chosen.values()))
 
@@ -207,18 +273,12 @@ def selection_menu(canvas):
                 elif game_mode[0] == "Cheese Race" and line == "Cheese Race":
                     lines.append((f'{line}: {game_mode[3]}', line in chosen.values()))
 
-                elif line == "Multiplayer":
-                    lines.append((line, multiplayer))
-        
                 else:
                     lines.append((line, line in chosen.values()))
             else:
-                if line in ("Local",):
-                    lines.append((line, local))
-                else:
                     lines.append((line, line in chosen.values()))
             
-        display_menu(canvas, lines, current_page_label, selected)
+        display_menu(canvas, lines, current_page_label, selected, network_row[selected_multiplayer_option], player_ip, entered_ip)
 
         # get last held keys
         last_held = set(pressed)

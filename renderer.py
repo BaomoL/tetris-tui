@@ -26,7 +26,7 @@ def text(canvas, row, col, text, fcolor = None, bcolor = None):
         canvas[row][column] = (letter, fcolor, bcolor)
         column+=1
 
-def display_menu(canvas, lines, title, selected):
+def display_menu(canvas, lines, title, selected, selected_multiplayer_option, ip, typed_ip):
 
     new_buffer = canvas.blank_canvas()
 
@@ -40,19 +40,44 @@ def display_menu(canvas, lines, title, selected):
 
     for item_position, (item, highlight) in enumerate(lines):
 
+        # set highlight colors
+
+        if highlight:
+            color = ((0,0,0), (255,255,255))
+        else:
+            color = ((255,255,255), None)
+
+        if selected_multiplayer_option == item:
+            color = ((0,0,0), (255,255,255))
+
         # space out settings one extra
         if item == "Start":
             text(new_buffer, row, 4, '---------', (255,255,255))
             row += 1
 
-        if item in ("Sprint", "Ultra", "Cheese Race", "Settings", "Multiplayer"):
-            text(new_buffer, row, 16, '›', (255,255,255))
-        
-        if highlight:
-            text(new_buffer, row, 4, item, (0,0,0), (255,255,255))
+        if item in ("Sprint", "Ultra", "Cheese Race", "Settings"):
+            text(new_buffer, row, 16, '›', *color)
+
+        if item == "Join":
+            row -= 1
+            text(new_buffer, row, 12, "Join", *color)
+            text(new_buffer, row, 10, "|", (255,255,255))
+
+        elif item == "Host":
+            row -= 1
+            text(new_buffer, row, 19, "Host", *color)
+            text(new_buffer, row, 17, "|", (255,255,255))
+            if selected_multiplayer_option == "Host":
+                row += 1
+                text(new_buffer, row, 4, ip, (255,255,255))
+            elif selected_multiplayer_option == "Join":
+                row +=1
+                text(new_buffer, row, 4, f'Enter IP: {typed_ip}', (255,255,255))
         else:
-            text(new_buffer, row, 4, item, (255,255,255))
+             text(new_buffer, row, 4, item, *color)
+
         if item_position == selected:
+
             text(new_buffer, row, 2, '>', (255,255,255))
 
         row += 1

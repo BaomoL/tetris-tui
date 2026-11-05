@@ -172,5 +172,20 @@ class Controls:
 
         self.last_held = held_actions
 
-
         return new_actions, held_actions
+
+class KeyReader:
+
+    def __init__(self):
+        self.last_held = set(pressed)
+
+    def read(self):
+
+        held_actions = set(pressed)
+
+        new_actions = held_actions - self.last_held
+
+        self.last_held = held_actions
+
+
+        return new_actions
