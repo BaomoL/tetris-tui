@@ -59,9 +59,14 @@ def run_match(canvas, game_mode):
 
 # run match but with someone online
 
-def run_online_match(canvas, net):
+def run_online_match(canvas, net, game_seed):
 
-    my_game = Game(canvas, ("Versus", None, None, None))
+    if net.mode == 'host':
+        player_num = 1
+    else:
+        player_num = 2
+
+    my_game = Game(canvas, ("Versus", None, None, None), player_num=player_num, seed= game_seed)
 
     my_controls = Controls("game")
 
@@ -69,7 +74,9 @@ def run_online_match(canvas, net):
 
     last_render = time.perf_counter()
 
-    while my_game.running and net.connected:
+    other_player_lost = False
+
+    while my_game.running and net.connected and not other_player_lost:
 
         if Key.esc in pressed:
             my_game.running = False
@@ -86,16 +93,31 @@ def run_online_match(canvas, net):
         if now - last_render >= 1/fps:
             buffer = canvas.blank_canvas()
             render(my_game, my_game.board, buffer, 0)
-            net.send(my_game.snapshot())
+
+            # ensure game is still connected before sending
+            try:
+                net.send(my_game.snapshot())
+            except OSError:
+                net.connected = False
+
             my_game.outgoing = []
 
             if net.latest is not None:
                 op_pov = OpponentPOV(net.latest)
                 render(op_pov, op_pov.board, buffer, 50)
+                
             canvas.load(buffer)
             last_render = now
 
+        if net.latest is not None and net.latest['lost']:
+            other_player_lost = True
+
         time.sleep(1/tick_rate)
+
+    try:
+        net.send(my_game.snapshot())
+    except OSError:
+        net.connected = False
 
     return my_game
 

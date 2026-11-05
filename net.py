@@ -2,6 +2,7 @@ import socket, json, threading
 from config import PORT
 from board import Board
 from pieces import Piece
+import random
 
 class Connection:
 
@@ -14,9 +15,11 @@ class Connection:
             self.server.bind(("0.0.0.0", PORT))
             self.server.listen()
             self.conn, self.addr = self.server.accept()
+            self.mode = 'host'
         else:
             self.conn = socket.socket()
             self.conn.connect((ip, PORT))
+            self.mode = 'joiner'
 
             # need to assign somethign to server to avoid crashing
             self.server = None
@@ -44,7 +47,14 @@ class Connection:
         incoming_json = self.conn.makefile("r")
 
         while True:
-            line = incoming_json.readline()
+
+            # ensure still connected
+            try:
+                line = incoming_json.readline()
+            except OSError:
+                self.connected = False
+                return
+
             if line == "":
                 self.connected = False
                 return
@@ -56,8 +66,9 @@ class Connection:
             self.attacks.extend(latest.get("attacks", []))
 
     def close(self):
-         if self.server:
-            self.conn.close()
+        self.conn.close()
+        if self.server:
+            self.server.close()
 
 class OpponentPOV:
 

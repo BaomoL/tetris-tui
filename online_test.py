@@ -4,7 +4,8 @@ from canvas import Canvas
 from terminal import raw_mode
 from match import run_online_match
 from keys import listener
-from game import Game
+import random
+
 
 if sys.argv[1] == 'host':
     net = Connection('host')
@@ -17,8 +18,10 @@ canvas = Canvas(100, 35)
 try:
     listener.start()
     with raw_mode():
-        run_online_match(canvas, net)
+        seed = random.randint(1, 100000)
+        run_online_match(canvas, net, seed)
 
 finally:
     canvas.close()
     listener.stop()
+    net.close()
