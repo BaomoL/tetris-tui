@@ -1,4 +1,5 @@
 from pieces import Piece
+from net import get_local_ip
 
 # function for converting time to time format
 
@@ -102,7 +103,8 @@ def display_results(game, buffer, x_offset):
         text(buffer, 5, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
         text(buffer, 6, 3+x_offset, f'Pieces Placed: {game.board.placed_pieces}', (255,255,255))
         text(buffer, 7, 3+x_offset, f'Lines Cleared: {game.total_lines}', (255,255,255))
-        text(buffer, 8, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
+        if game.elapsed_time > 0:
+            text(buffer, 8, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
 
         text(buffer, 10, 3+x_offset, 'Press Enter to play again', (255,255,255))
         text(buffer, 11, 3+x_offset, 'Press Esc to return to menu', (255,255,255))
@@ -113,14 +115,29 @@ def display_results(game, buffer, x_offset):
         text(buffer, 7, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
         text(buffer, 8, 3+x_offset, f'Pieces Placed: {game.board.placed_pieces}', (255,255,255))
         text(buffer, 9, 3+x_offset, f'Lines Cleared: {game.total_lines}', (255,255,255))
-        text(buffer, 10, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
+        if game.elapsed_time > 0:
+            text(buffer, 10, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
     
 def display_multiplayer_results(games, buffer):
     winner = 1 if games[0].lost == False else 2
     text(buffer, 3, 3, f'Winner: Player {winner}', (255,255,255))
     text(buffer, 12, 3, 'Press Enter to play again', (255,255,255))
     text(buffer, 13, 3, 'Press Esc to return to menu', (255,255,255))
-    
+
+def display_waiting_join(canvas):
+    new_buffer = canvas.blank_canvas()
+    text(new_buffer, 4, 4, "Waiting for other player...", (255, 255, 255))
+    text(new_buffer, 5, 4, f'IP: {get_local_ip()}', (255, 255, 255))
+    canvas.load(new_buffer)
+
+def display_waiting_to_start(canvas):
+
+    new_buffer = canvas.blank_canvas()
+    text(new_buffer, 4, 4, "Player 2 Joined", (255, 255, 255))
+    text(new_buffer, 6, 4, "Press Enter To Start", (255, 255, 255))
+    canvas.load(new_buffer)
+
+
 def render(game, board, buffer, x_offset=0):
 
     # only puts a color when truth value

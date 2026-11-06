@@ -1,7 +1,7 @@
 import time
 from pynput.keyboard import Key
 from keys import pressed
-from renderer import display_menu, display_results, display_multiplayer_results
+from renderer import display_menu, display_results, display_multiplayer_results, display_waiting_to_start
 from controls import Controls, Action, bindings, key_names, default_bindings, KeyReader
 from renderer import format_time
 from net import get_local_ip
@@ -326,4 +326,12 @@ def selection_menu(canvas):
 
         inputs.read()
 
+        time.sleep(0.01)
+
+def waiting_screen(canvas):
+    x = True
+    while x:
+        display_waiting_to_start(canvas)
+        if Key.enter in pressed:
+            x = False
         time.sleep(0.01)

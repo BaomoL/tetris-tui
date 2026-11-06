@@ -20,6 +20,7 @@ class Connection:
             self.conn = socket.socket()
             self.conn.connect((ip, PORT))
             self.mode = 'joiner'
+            self.start = False
 
             # need to assign somethign to server to avoid crashing
             self.server = None
@@ -59,7 +60,18 @@ class Connection:
                 self.connected = False
                 return
             latest = json.loads(line) 
-            self.latest = latest
+
+            # start game
+
+            if self.mode == 'joiner':
+                if not self.start:
+                    if latest.get('start', False):
+                        self.seed = latest['seed']
+                        self.start = True
+                else: 
+                    self.latest = latest
+            else:
+                self.latest = latest
 
             # grab attacks with dictonary key; default to []
 
@@ -92,6 +104,8 @@ class OpponentPOV:
         self.elapsed_time = snap["elapsed_time"]
         self.combo = snap["combo"]
         self.last_clear_type = snap["last_clear_type"]
+        self.total_lines = snap['total_lines']
+        self.lost = snap['lost']
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -404,6 +404,7 @@ class Game:
             "last_clear_type": self.last_clear_type,
             "lost": self.lost,
             "attacks": self.outgoing,
+            'total_lines': self.total_lines,
         }
 
     def tick(self, new_actions, held_actions, now):
