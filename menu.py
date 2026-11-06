@@ -134,6 +134,8 @@ def selection_menu(canvas):
 
     entered_ip = ''
 
+    multiplayer_type = ()
+
     keyboard_input = KeyReader()
     
     while True:
@@ -156,6 +158,16 @@ def selection_menu(canvas):
 
         if selected_multiplayer_option == 2 and player_ip == "No Network Connection":
             player_ip = get_local_ip()
+
+        if selected_multiplayer_option == 2:
+            multiplayer_type = ('host',)
+
+        if selected_multiplayer_option == 1:
+            if entered_ip != '':
+                multiplayer_type = ('join', entered_ip)
+
+        if selected_multiplayer_option == 0:
+            multiplayer_type = ()
 
         # for typing in ip
 
@@ -230,7 +242,7 @@ def selection_menu(canvas):
     
             # start game
             if selected_option_label == "Start":
-                return game_mode, ()
+                return game_mode, multiplayer_type
 
             # toggle multiplayer
             if selected_option_label == "Multiplayer":
@@ -239,16 +251,18 @@ def selection_menu(canvas):
                 selected_multiplayer_option = 0
                 chosen = {}
                 selected = 0
+                game_mode = ("Versus", None, None, None)
 
             elif selected_option_label == "Single Player":
                 page_labels =["TUI Tetris: Single Player"]
                 pages = [page["TUI Tetris: Single Player"]]
                 chosen = {"TUI Tetris: Single Player": "Marathon"}
+                game_mode = ("Marathon", None, None, None)
                 selected = 0
 
             # quit game
             if selected_option_label == "Quit":
-                return None
+                return None, None
 
         lines = []
 
