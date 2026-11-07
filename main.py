@@ -1,4 +1,4 @@
-from menu import selection_menu, results_menu, waiting_screen, connection_lost_screen, play_again_screen
+from menu import selection_menu, results_menu, waiting_screen, connection_lost_screen, play_again_screen, countdown
 from canvas import Canvas
 from game import Game
 from terminal import raw_mode
@@ -36,7 +36,7 @@ try:
                     game1, game2 = run_match(game_canvas, ("Versus", None, None, None))
                     games = [game1, game2]
 
-                # host option
+                # host
 
                 elif multiplayer_options[0] == 'host':
                     display_waiting_join(game_canvas, 'host')
@@ -49,16 +49,26 @@ try:
 
                             seed = random.randint(1, 100000)
 
+                            games = []
                             net.latest = None
                             net.attacks = []
 
+                            # send signal to start
+
                             net.send({'start': True, 'seed': seed})
 
+                            countdown(game_canvas)
+
                             # save game results with append
-                            games = []
 
                             games.append(run_online_match(game_canvas, net, seed))
-                            if net.latest:
+
+                            # only wait up to 1 second for official final results
+                            now = time.perf_counter()
+
+                            while net.connected and net.latest and not net.latest.get('final', False) and time.perf_counter()-now <= 1:
+                                time.sleep(0.01)
+                            if net.latest:    
                                 games.append(OpponentPOV(net.latest))
 
                             play_again = play_again_screen(game_canvas, games, net)
@@ -93,7 +103,6 @@ try:
                             display_waiting_to_start(game_canvas, 'joiner')
                             time.sleep(0.01)
 
-                    # save game results with append
                         if net.start:
 
                             # reset game states
@@ -103,14 +112,25 @@ try:
                             net.latest = None
                             net.attacks = []
 
-                            games.append(run_online_match(game_canvas, net, seed))
-                            if net.latest:
-                                games.append(OpponentPOV(net.latest))
+                            countdown(game_canvas)
 
+                            # save game results with append
+
+                            games.append(run_online_match(game_canvas, net, seed))
+
+                            # only wait up to 1 second for official final results
+                            now = time.perf_counter()
+
+                            while net.connected and net.latest and not net.latest.get('final', False) and time.perf_counter()-now <= 1:
+                                time.sleep(0.01)
+                            if net.latest:    
+                                games.append(OpponentPOV(net.latest))
                             net.start = False
 
                             play_again = play_again_screen(game_canvas, games, net)
                         else:
+
+                            connection_lost_screen(game_canvas)
                             play_again = False
 
 

@@ -119,10 +119,11 @@ def display_results(game, buffer, x_offset):
             text(buffer, 10, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
 
  
-def display_multiplayer_results(games, buffer):
+def display_multiplayer_results(games, buffer, net):
     winner = 1 if games[0].lost == False else 2
     text(buffer, 3, 3, f'Winner: Player {winner}', (255,255,255))
-    text(buffer, 12, 3, 'Press Enter to play again', (255,255,255))
+    if net.connected:
+        text(buffer, 12, 3, 'Press Enter to play again', (255,255,255))
     text(buffer, 13, 3, 'Press Esc to return to menu', (255,255,255))
 
 def display_waiting_join(canvas, player_type, ip = None):
@@ -149,8 +150,8 @@ def display_waiting_to_start(canvas, player_type):
 def display_connection_lost(canvas):
 
     new_buffer = canvas.blank_canvas()
-    text(new_buffer, 4, 4, "Player 2 Lost Connection")
-    text(new_buffer, 6, 4, "Press Enter to Return to Menu")
+    text(new_buffer, 4, 4, "Other Player Lost Connection", (255, 255, 255))
+    text(new_buffer, 6, 4, "Press Enter to Return to Menu", (255, 255, 255))
 
     canvas.load(new_buffer)
 

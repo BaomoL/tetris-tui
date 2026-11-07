@@ -361,7 +361,7 @@ def play_again_screen(canvas, games, net):
             display_results(game, buffer, 50 * i)
 
         if games[0].mode == "Versus":
-            display_multiplayer_results(games, buffer)
+            display_multiplayer_results(games, buffer, net)
 
         canvas.load(buffer)
 
@@ -371,12 +371,28 @@ def play_again_screen(canvas, games, net):
             new_actions, held_actions = inputs.read()
 
             if Action.MENU_ENTER in new_actions:
-                return True
+                if net.connected:
+                    return True
+                else:
+                    return False
             
             if Action.MENU_ESC in new_actions:
                 return False
-            
-            if not net.connected:
-                return False
 
             time.sleep(0.01)
+
+def countdown(canvas):
+
+    buffer = canvas.blank_canvas()
+
+    text(buffer, 6, 10, "Starting in 3...", (255, 255,255))
+    canvas.load(buffer)
+    time.sleep(1)
+
+    text(buffer, 6, 10, "Starting in 2...", (255, 255,255))
+    canvas.load(buffer)
+    time.sleep(1)
+
+    text(buffer, 6, 10, "Starting in 1...", (255, 255,255))
+    canvas.load(buffer)
+    time.sleep(1)

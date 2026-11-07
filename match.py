@@ -4,7 +4,7 @@ from controls import Controls, p1_bindings, p2_bindings
 from pynput.keyboard import Key
 from keys import pressed
 from config import tick_rate, fps
-from renderer import render
+from renderer import render, text
 from net import OpponentPOV
 import time
 
@@ -76,7 +76,7 @@ def run_online_match(canvas, net, game_seed):
 
     other_player_lost = False
 
-    while my_game.running and net.connected and not other_player_lost:
+    while my_game.running and not other_player_lost:
 
         if Key.esc in pressed:
             my_game.running = False
@@ -105,6 +105,10 @@ def run_online_match(canvas, net, game_seed):
             if net.latest is not None:
                 op_pov = OpponentPOV(net.latest)
                 render(op_pov, op_pov.board, buffer, 50)
+
+            # show disconnect message
+            if not net.connected:
+                text(buffer, 12, 65, "Disconnected!", (255, 80, 80))
                 
             canvas.load(buffer)
             last_render = now
@@ -115,7 +119,9 @@ def run_online_match(canvas, net, game_seed):
         time.sleep(1/tick_rate)
 
     try:
-        net.send(my_game.snapshot())
+        final_snapshot = my_game.snapshot()
+        final_snapshot['final'] = True
+        net.send(final_snapshot)
     except OSError:
         net.connected = False
 
