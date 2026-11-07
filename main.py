@@ -36,29 +36,46 @@ try:
                     game1, game2 = run_match(game_canvas, ("Versus", None, None, None))
                     games = [game1, game2]
 
+                # host option
+
                 elif multiplayer_options[0] == 'host':
                     seed = random.randint(1, 100000)
-                    display_waiting_join(game_canvas)
+                    display_waiting_join(game_canvas, 'host')
                     net = Connection(*multiplayer_options)
+
                     waiting_screen(game_canvas)
+
                     net.send({'start': True, 'seed': seed})
-                    # save game results
+
+                    # save game results with append
                     games.append(run_online_match(game_canvas, net, seed))
                     if net.latest:
                         games.append(OpponentPOV(net.latest))        
 
                     net.close()
 
+                # joiner
+
                 else:
+                    display_waiting_join(game_canvas, 'joiner', multiplayer_options[1])
                     net = Connection(*multiplayer_options)
                     while not net.start:
-                        display_waiting_join(game_canvas)
+                        # cancel the loop if other player disconnects
+                        if not net.connected:
+                            break
+                        display_waiting_to_start(game_canvas, 'joiner')
                         time.sleep(0.01)
-                    seed = net.seed
-                    # save game results
-                    games.append(run_online_match(game_canvas, net, seed))
-                    if net.latest:
-                        games.append(OpponentPOV(net.latest))
+
+                    # save game results with append
+                    if net.start:
+                        seed = net.seed
+                        games.append(run_online_match(game_canvas, net, seed))
+                        if net.latest:
+                            games.append(OpponentPOV(net.latest))
+                    else:
+                        net.close()
+                        menu = True
+                        continue
 
                     net.close()
                         

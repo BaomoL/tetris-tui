@@ -331,7 +331,7 @@ def selection_menu(canvas):
 def waiting_screen(canvas):
     x = True
     while x:
-        display_waiting_to_start(canvas)
+        display_waiting_to_start(canvas, 'host')
         if Key.enter in pressed:
             x = False
         time.sleep(0.01)

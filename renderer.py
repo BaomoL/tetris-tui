@@ -124,17 +124,25 @@ def display_multiplayer_results(games, buffer):
     text(buffer, 12, 3, 'Press Enter to play again', (255,255,255))
     text(buffer, 13, 3, 'Press Esc to return to menu', (255,255,255))
 
-def display_waiting_join(canvas):
+def display_waiting_join(canvas, player_type, ip = None):
     new_buffer = canvas.blank_canvas()
-    text(new_buffer, 4, 4, "Waiting for other player...", (255, 255, 255))
-    text(new_buffer, 5, 4, f'IP: {get_local_ip()}', (255, 255, 255))
+    if player_type == 'host':
+        text(new_buffer, 4, 4, "Waiting for other player...", (255, 255, 255))
+        text(new_buffer, 5, 4, f'IP: {get_local_ip()}', (255, 255, 255))
+    elif player_type == 'joiner':
+        text(new_buffer, 4, 4, f'Connecting to {ip}...', (255, 255, 255))
     canvas.load(new_buffer)
 
-def display_waiting_to_start(canvas):
+def display_waiting_to_start(canvas, player_type):
 
     new_buffer = canvas.blank_canvas()
-    text(new_buffer, 4, 4, "Player 2 Joined", (255, 255, 255))
-    text(new_buffer, 6, 4, "Press Enter To Start", (255, 255, 255))
+
+    if player_type == 'host':
+        text(new_buffer, 4, 4, "Player 2 Joined", (255, 255, 255))
+        text(new_buffer, 6, 4, "Press Enter To Start", (255, 255, 255))
+    elif player_type == 'joiner':
+        text(new_buffer, 4, 4, "Connected. Waiting for Other Player to Start", (255, 255, 255))
+
     canvas.load(new_buffer)
 
 
