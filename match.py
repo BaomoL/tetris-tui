@@ -74,11 +74,14 @@ def run_online_match(canvas, net, game_seed):
 
     last_render = time.perf_counter()
 
+    last_send = time.perf_counter()
+
     other_player_lost = False
 
     while my_game.running and not other_player_lost:
 
         if Key.esc in pressed:
+            my_game.lost = True
             my_game.running = False
 
         new_presses, held_presses = my_controls.read()
@@ -95,12 +98,14 @@ def run_online_match(canvas, net, game_seed):
             render(my_game, my_game.board, buffer, 0)
 
             # ensure game is still connected before sending
-            try:
-                net.send(my_game.snapshot())
-            except OSError:
-                net.connected = False
+            if now - last_send >= 1/20:
+                try:
+                    net.send(my_game.snapshot())
+                except OSError:
+                    net.connected = False
+                last_send = now
 
-            my_game.outgoing = []
+                my_game.outgoing = []
 
             if net.latest is not None:
                 op_pov = OpponentPOV(net.latest)

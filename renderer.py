@@ -3,11 +3,15 @@ from net import get_local_ip
 
 # function for converting time to time format
 
-def format_time(seconds):
+def format_time(seconds, show_ms=False):
 
-    minutes, seconds = divmod(int(seconds), 60)
+    minutes, seconds = divmod(seconds, 60)
 
-    return f'{minutes:02d}:{seconds:02d}'
+    if show_ms:
+        return f'{int(minutes)}:{seconds:05.2f}'
+    
+    
+    return f'{int(minutes)}:{int(seconds):02d}'
 
 # convert regular characters into blocks
 
@@ -100,7 +104,7 @@ def display_results(game, buffer, x_offset):
             text(buffer, 3, 3+x_offset, f'{game.mode} | {format_time(game.elapsed_time)}/{format_time(game.ultra)}', (255,255,255))
 
         text(buffer, 4, 3+x_offset, f'Score: {int(game.score)}', (255,255,255))
-        text(buffer, 5, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
+        text(buffer, 5, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time, True)}', (255,255,255))
         text(buffer, 6, 3+x_offset, f'Pieces Placed: {game.board.placed_pieces}', (255,255,255))
         text(buffer, 7, 3+x_offset, f'Lines Cleared: {game.total_lines}', (255,255,255))
         if game.elapsed_time > 0:
@@ -112,17 +116,17 @@ def display_results(game, buffer, x_offset):
         text(buffer, 5, 3+x_offset, f'Total Attack: {game.total_attacks}', (255,255,255))
         if game.elapsed_time > 0:
             text(buffer, 6, 3+x_offset, f'Attacks Per Minute: {round(game.total_attacks/(game.elapsed_time/60), 2)}', (255,255,255))
-        text(buffer, 7, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
+        text(buffer, 7, 3+x_offset, f'Elapsed Time: {format_time(game.elapsed_time, True)}', (255,255,255))
         text(buffer, 8, 3+x_offset, f'Pieces Placed: {game.board.placed_pieces}', (255,255,255))
         text(buffer, 9, 3+x_offset, f'Lines Cleared: {game.total_lines}', (255,255,255))
         if game.elapsed_time > 0:
             text(buffer, 10, 3+x_offset, f'Piece Per Second: {round(game.board.placed_pieces/game.elapsed_time, 2)}', (255,255,255))
 
  
-def display_multiplayer_results(games, buffer, net):
+def display_multiplayer_results(games, buffer, net= None):
     winner = 1 if games[0].lost == False else 2
     text(buffer, 3, 3, f'Winner: Player {winner}', (255,255,255))
-    if net.connected:
+    if net is None or net.connected:
         text(buffer, 12, 3, 'Press Enter to play again', (255,255,255))
     text(buffer, 13, 3, 'Press Esc to return to menu', (255,255,255))
 
@@ -242,7 +246,7 @@ def render(game, board, buffer, x_offset=0):
         text(buffer, 24, 10+x_offset, f'Score: {int(game.score)}', (255,255,255))
         y = 0
 
-    text(buffer, 25+y, 10+x_offset, f'Elapsed Time: {format_time(game.elapsed_time)}', (255,255,255))
+    text(buffer, 25+y, 10+x_offset, f'Elapsed Time: {format_time(game.elapsed_time, True)}', (255,255,255))
     text(buffer, 26+y, 10+x_offset, f'Combo: {game.combo}', (255,255,255))
     text(buffer, 27+y, 10+x_offset, f'Placed: {board.placed_pieces}', (255,255,255))
 
