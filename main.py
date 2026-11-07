@@ -1,4 +1,4 @@
-from menu import selection_menu, results_menu, waiting_screen
+from menu import selection_menu, results_menu, waiting_screen, connection_lost_screen, play_again_screen
 from canvas import Canvas
 from game import Game
 from terminal import raw_mode
@@ -39,45 +39,86 @@ try:
                 # host option
 
                 elif multiplayer_options[0] == 'host':
-                    seed = random.randint(1, 100000)
                     display_waiting_join(game_canvas, 'host')
                     net = Connection(*multiplayer_options)
+                    play_again = True
 
-                    waiting_screen(game_canvas)
+                    while play_again:
 
-                    net.send({'start': True, 'seed': seed})
+                        if waiting_screen(game_canvas, net):
 
-                    # save game results with append
-                    games.append(run_online_match(game_canvas, net, seed))
-                    if net.latest:
-                        games.append(OpponentPOV(net.latest))        
+                            seed = random.randint(1, 100000)
 
+                            net.latest = None
+                            net.attacks = []
+
+                            net.send({'start': True, 'seed': seed})
+
+                            # save game results with append
+                            games = []
+
+                            games.append(run_online_match(game_canvas, net, seed))
+                            if net.latest:
+                                games.append(OpponentPOV(net.latest))
+
+                            play_again = play_again_screen(game_canvas, games, net)
+                        else:
+                            # show lost connection screen; wait to return to menu
+
+                            connection_lost_screen(game_canvas)
+                            play_again = False
+
+                        time.sleep(0.01)
+
+                    menu = True
                     net.close()
+                    continue
 
                 # joiner
 
                 else:
                     display_waiting_join(game_canvas, 'joiner', multiplayer_options[1])
                     net = Connection(*multiplayer_options)
-                    while not net.start:
-                        # cancel the loop if other player disconnects
-                        if not net.connected:
-                            break
-                        display_waiting_to_start(game_canvas, 'joiner')
-                        time.sleep(0.01)
+
+                    play_again = True
+
+                    while play_again:
+
+                        # wait for game to start
+
+                        while not net.start:
+                            # cancel the loop if other player disconnects
+                            if not net.connected:
+                                break
+                            display_waiting_to_start(game_canvas, 'joiner')
+                            time.sleep(0.01)
 
                     # save game results with append
-                    if net.start:
-                        seed = net.seed
-                        games.append(run_online_match(game_canvas, net, seed))
-                        if net.latest:
-                            games.append(OpponentPOV(net.latest))
-                    else:
-                        net.close()
-                        menu = True
-                        continue
+                        if net.start:
+
+                            # reset game states
+
+                            games = []
+                            seed = net.seed
+                            net.latest = None
+                            net.attacks = []
+
+                            games.append(run_online_match(game_canvas, net, seed))
+                            if net.latest:
+                                games.append(OpponentPOV(net.latest))
+
+                            net.start = False
+
+                            play_again = play_again_screen(game_canvas, games, net)
+                        else:
+                            play_again = False
+
+
+                        time.sleep(0.01)
 
                     net.close()
+                    menu = True
+                    continue
                         
             else:
                 game = Game(game_canvas, game_mode)

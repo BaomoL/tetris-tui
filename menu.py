@@ -1,10 +1,11 @@
 import time
 from pynput.keyboard import Key
 from keys import pressed
-from renderer import display_menu, display_results, display_multiplayer_results, display_waiting_to_start
+from renderer import display_menu, display_results, display_multiplayer_results, display_waiting_to_start, display_connection_lost
 from controls import Controls, Action, bindings, key_names, default_bindings, KeyReader
 from renderer import format_time
 from net import get_local_ip
+from renderer import text
 
 class Setting:
 
@@ -328,14 +329,54 @@ def selection_menu(canvas):
 
         time.sleep(0.01)
 
-def waiting_screen(canvas):
+def waiting_screen(canvas, net):
     inputs = Controls('menu')
 
+    while True:
+        new_actions, held_actions = inputs.read()
+        display_waiting_to_start(canvas, 'host')
+        if Action.MENU_ENTER in new_actions:
+            return True
+        if not net.connected:
+            return False
+        time.sleep(0.01)
+
+def connection_lost_screen(canvas):
+    inputs = Controls('menu')
+    
     x = True
 
     while x:
         new_actions, held_actions = inputs.read()
-        display_waiting_to_start(canvas, 'host')
+        display_connection_lost(canvas)
         if Action.MENU_ENTER in new_actions:
             x = False
         time.sleep(0.01)
+
+def play_again_screen(canvas, games, net):
+
+        buffer = canvas.blank_canvas()
+        for i, game in enumerate(games):
+
+            display_results(game, buffer, 50 * i)
+
+        if games[0].mode == "Versus":
+            display_multiplayer_results(games, buffer)
+
+        canvas.load(buffer)
+
+        inputs = Controls('menu')
+
+        while True:
+            new_actions, held_actions = inputs.read()
+
+            if Action.MENU_ENTER in new_actions:
+                return True
+            
+            if Action.MENU_ESC in new_actions:
+                return False
+            
+            if not net.connected:
+                return False
+
+            time.sleep(0.01)
