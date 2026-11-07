@@ -329,9 +329,13 @@ def selection_menu(canvas):
         time.sleep(0.01)
 
 def waiting_screen(canvas):
+    inputs = Controls('menu')
+
     x = True
+
     while x:
+        new_actions, held_actions = inputs.read()
         display_waiting_to_start(canvas, 'host')
-        if Key.enter in pressed:
+        if Action.MENU_ENTER in new_actions:
             x = False
         time.sleep(0.01)

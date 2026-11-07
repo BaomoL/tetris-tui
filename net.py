@@ -2,7 +2,6 @@ import socket, json, threading
 from config import PORT
 from board import Board
 from pieces import Piece
-import random
 
 class Connection:
 
