@@ -82,7 +82,7 @@ page = {
         "Quit": None}
 }
 
-def results_menu(canvas, games):
+def results_menu(canvas, games, net = None):
 
     buffer = canvas.blank_canvas()
     for i, game in enumerate(games):
@@ -90,7 +90,7 @@ def results_menu(canvas, games):
         display_results(game, buffer, 50 * i)
 
     if games[0].mode == "Versus":
-        display_multiplayer_results(games, buffer)
+        display_multiplayer_results(games, buffer, net)
 
     canvas.load(buffer)
 
@@ -100,7 +100,14 @@ def results_menu(canvas, games):
         new_actions, held_actions = inputs.read()
 
         if Action.MENU_ENTER in new_actions:
-            return False
+            if net:
+                if net.connected:
+                    return False
+                else:
+                    return True
+            else:
+                return False
+
         if Action.MENU_ESC in new_actions:
             return True
 
@@ -352,34 +359,6 @@ def connection_lost_screen(canvas):
         if Action.MENU_ENTER in new_actions:
             x = False
         time.sleep(0.01)
-
-def play_again_screen(canvas, games, net):
-
-        buffer = canvas.blank_canvas()
-        for i, game in enumerate(games):
-
-            display_results(game, buffer, 50 * i)
-
-        if games[0].mode == "Versus":
-            display_multiplayer_results(games, buffer, net)
-
-        canvas.load(buffer)
-
-        inputs = Controls('menu')
-
-        while True:
-            new_actions, held_actions = inputs.read()
-
-            if Action.MENU_ENTER in new_actions:
-                if net.connected:
-                    return True
-                else:
-                    return False
-            
-            if Action.MENU_ESC in new_actions:
-                return False
-
-            time.sleep(0.01)
 
 def countdown(canvas):
 

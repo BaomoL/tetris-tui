@@ -61,12 +61,7 @@ def run_match(canvas, game_mode):
 
 def run_online_match(canvas, net, game_seed):
 
-    if net.mode == 'host':
-        player_num = 1
-    else:
-        player_num = 2
-
-    my_game = Game(canvas, ("Versus", None, None, None), player_num=player_num, seed= game_seed)
+    my_game = Game(canvas, ("Versus", None, None, None), seed= game_seed)
 
     my_controls = Controls("game")
 

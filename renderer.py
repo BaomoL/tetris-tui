@@ -181,7 +181,7 @@ def render(game, board, buffer, x_offset=0):
     for y in range(len(game.active_piece.shape)):
         for x in range(len(game.active_piece.shape[y])):
             if game.active_piece.shape[y][x]:
-                draw_block(buffer, ghost_y+y, game.active_piece.x + x, ('░', game.active_piece.color, None), 10+x_offset)
+                draw_block(buffer, ghost_y+y, game.active_piece.x + x, (' ', None, game.active_piece.ghost_color), 10+x_offset)
 
     # draw piece
 

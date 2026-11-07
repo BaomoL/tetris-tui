@@ -1,4 +1,4 @@
-from menu import selection_menu, results_menu, waiting_screen, connection_lost_screen, play_again_screen, countdown
+from menu import selection_menu, results_menu, waiting_screen, connection_lost_screen, countdown
 from canvas import Canvas
 from game import Game
 from terminal import raw_mode
@@ -8,11 +8,15 @@ from net import Connection, OpponentPOV
 from renderer import display_waiting_join, display_waiting_to_start
 import random, time
 
-game_canvas = Canvas(100, 35)
 net = None
 games = []
 try:
     listener.start()
+    time.sleep(0.1)
+
+    # draw canvas after listener to wipe warning message
+
+    game_canvas = Canvas(100, 35)
     menu = True
     with raw_mode():
 
@@ -33,6 +37,7 @@ try:
         
             if game_mode[0] == "Versus":
                 if multiplayer_options == ():
+                    countdown(game_canvas)
                     game1, game2 = run_match(game_canvas, ("Versus", None, None, None))
                     games = [game1, game2]
 
@@ -41,9 +46,9 @@ try:
                 elif multiplayer_options[0] == 'host':
                     display_waiting_join(game_canvas, 'host')
                     net = Connection(*multiplayer_options)
-                    play_again = True
+                    dont_play_again = False
 
-                    while play_again:
+                    while not dont_play_again:
 
                         if waiting_screen(game_canvas, net):
 
@@ -71,12 +76,12 @@ try:
                             if net.latest:    
                                 games.append(OpponentPOV(net.latest))
 
-                            play_again = play_again_screen(game_canvas, games, net)
+                            dont_play_again = results_menu(game_canvas, games, net)
                         else:
                             # show lost connection screen; wait to return to menu
 
                             connection_lost_screen(game_canvas)
-                            play_again = False
+                            dont_play_again = True
 
                         time.sleep(0.01)
 
@@ -90,9 +95,9 @@ try:
                     display_waiting_join(game_canvas, 'joiner', multiplayer_options[1])
                     net = Connection(*multiplayer_options)
 
-                    play_again = True
+                    dont_play_again = False
 
-                    while play_again:
+                    while not dont_play_again:
 
                         # wait for game to start
 
@@ -127,11 +132,11 @@ try:
                                 games.append(OpponentPOV(net.latest))
                             net.start = False
 
-                            play_again = play_again_screen(game_canvas, games, net)
+                            dont_play_again = results_menu(game_canvas, games, net)
                         else:
 
                             connection_lost_screen(game_canvas)
-                            play_again = False
+                            dont_play_again = True
 
 
                         time.sleep(0.01)

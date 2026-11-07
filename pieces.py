@@ -75,6 +75,16 @@ class Piece:
         'g': (130, 130, 130)
     }
 
+    ghost_colors = {
+        't': (105, 39, 138),
+        'z': (141, 33, 33),
+        's': (39, 123, 45),
+        'i': (0, 132, 144),
+        'l': (153, 93, 15),
+        'j': (27, 54, 141),
+        'o': (150, 129, 21),
+}
+
     def __init__(self, shape, x, y):
         assert shape in Piece.shapes
         self.x = x
@@ -83,6 +93,7 @@ class Piece:
         self.type = shape
         self.last_move = None
         self.color = self.piece_colors[shape]
+        self.ghost_color = self.ghost_colors[shape]
 
         # copy piece shape onto shape (list comprehension avoids shallow copy)
 
